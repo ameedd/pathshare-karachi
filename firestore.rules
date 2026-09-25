@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Role-based Access Control: Mirrors storage.rules custom claim or database lookup
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.admin == true ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Catch-all safety net: default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // User Profiles: Restricted strictly to profile owner or system admin to protect CNIC, phone, and PII
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false);
+      allow update: if isAdmin() || (
+        isOwner(userId) &&
+        // Prevent normal users from elevating to admin or forging system verification
+        (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'isVerified', 'isDriverVerified']))
+      );
+      allow delete: if isAdmin();
+
+      // Private trip history subcollection: Accessible only by the owner or admin
+      match /tripHistory/{tripId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+
+      // Private PII subcollection
+      match /private/{docId} {
+        allow read, write: if isOwner(userId) || isAdmin();
+      }
+    }
+
+    // Identity Verifications (CNIC, Student ID, Corporate cards, Driving License)
+    // Mirrors storage.rules /verifications/{userId}
+    match /verifications/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId);
+      allow update, delete: if isAdmin();
+    }
+
+    // Commuter Carpool Rides: Public search and browsing, driver-only management
+    match /rides/{rideId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.driverUid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.driverUid == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Ride Seat Requests: Restricted to passenger, driver, or admin
+    match /rideRequests/{requestId} {
+      allow read: if isAuthenticated() && (
+        resource.data.passengerUid == request.auth.uid ||
+        resource.data.driverUid == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.passengerUid == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.passengerUid == request.auth.uid ||
+        resource.data.driverUid == request.auth.uid ||
+        isAdmin()
+      );
+    }
+
+    // Live Coordination Chat Threads: Authenticated participants or admin only
+    match /chats/{chatId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid in resource.data.participants ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && (
+        request.auth.uid in request.resource.data.participants
+      );
+      allow update: if isAuthenticated() && (
+        request.auth.uid in resource.data.participants ||
+        isAdmin()
+      );
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants ||
+          isAdmin()
+        );
+        allow create: if isAuthenticated() &&
+          request.resource.data.senderId == request.auth.uid &&
+          request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+      }
+    }
+
+    // System Admins
+    match /admins/{adminId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // OTP Verifications: Strictly locked down from client SDK.
+    // Real OTP state is managed server-side only. Direct client reads/writes are completely forbidden.
+    match /otpVerifications/{otpId} {
+      allow read, write: if false;
+    }
+  }
+}
+

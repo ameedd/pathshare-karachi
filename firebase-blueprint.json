@@ -1,0 +1,132 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profiles and identity verification data",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "username": { "type": "string" },
+        "bio": { "type": "string" },
+        "avatarUrl": { "type": "string" },
+        "officeCardImageUrl": { "type": "string" },
+        "officeCardStatus": { "type": "string" },
+        "companyName": { "type": "string" },
+        "officeLocation": { "type": "string" },
+        "phone": { "type": "string" },
+        "email": { "type": "string" },
+        "rating": { "type": "number" },
+        "reviewCount": { "type": "number" },
+        "paymentMethods": { "type": "array" }
+      },
+      "required": ["uid", "name", "email"]
+    },
+    "Ride": {
+      "title": "Ride",
+      "description": "Live carpool and bike rides posted by office commuters",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "driver": { "type": "string" },
+        "driverUid": { "type": "string" },
+        "vehicle": { "type": "string" },
+        "type": { "type": "string" },
+        "seats": { "type": "number" },
+        "price": { "type": "number" },
+        "time": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "status": { "type": "string" },
+        "ladiesOnly": { "type": "boolean" },
+        "startPin": { "type": "string" },
+        "pickupHotspot": { "type": "string" }
+      },
+      "required": ["id", "driver", "vehicle", "seats", "price", "from", "to"]
+    },
+    "RideRequest": {
+      "title": "RideRequest",
+      "description": "Seat requests submitted by passengers to drivers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "rideId": { "type": "number" },
+        "passengerUid": { "type": "string" },
+        "passengerName": { "type": "string" },
+        "seatsWanted": { "type": "number" },
+        "otp": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "status"]
+    },
+    "ChatThread": {
+      "title": "ChatThread",
+      "description": "Live chat coordination threads with route maps and safety pins",
+      "type": "object",
+      "properties": {
+        "id": { "type": "number" },
+        "participantName": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "messages": { "type": "array" }
+      },
+      "required": ["id", "participantName", "messages"]
+    },
+    "TripHistoryItem": {
+      "title": "TripHistoryItem",
+      "description": "Log of completed commuter trips",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "date": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "totalCost": { "type": "number" },
+        "role": { "type": "string" }
+      },
+      "required": ["id", "date", "from", "to", "totalCost"]
+    },
+    "OtpVerification": {
+      "title": "OtpVerification",
+      "description": "Live OTP verification requests dispatched and received via PathShare WhatsApp Business Helpline (+92 301 3519491)",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "targetPhone": { "type": "string" },
+        "otpCode": { "type": "string" },
+        "channel": { "type": "string" },
+        "officialBusinessSender": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "expiresAt": { "type": "string" }
+      },
+      "required": ["id", "targetPhone", "otpCode", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile collection"
+    },
+    "/rides/{rideId}": {
+      "schema": "Ride",
+      "description": "Commuter rides collection"
+    },
+    "/rideRequests/{requestId}": {
+      "schema": "RideRequest",
+      "description": "Passenger ride requests collection"
+    },
+    "/chats/{chatId}": {
+      "schema": "ChatThread",
+      "description": "Commuter chat threads collection"
+    },
+    "/users/{userId}/tripHistory/{tripId}": {
+      "schema": "TripHistoryItem",
+      "description": "Trip history subcollection"
+    },
+    "/otpVerifications/{otpId}": {
+      "schema": "OtpVerification",
+      "description": "Authentication OTP dispatch verification collection"
+    }
+  }
+}

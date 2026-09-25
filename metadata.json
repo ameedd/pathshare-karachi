@@ -1,0 +1,11 @@
+{
+  "name": "PathShare – Non-Commercial Carpooling",
+  "description": "Non-commercial commute ride sharing application for office-to-home carpooling and cost sharing",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
