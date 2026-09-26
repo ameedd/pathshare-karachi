@@ -29,6 +29,8 @@ import { UserProfile, UserPaymentMethod, TripHistoryItem, Ride, RideRequest, Cha
 
 // Resolve configuration preferring environment variables dynamically
 const metaEnv = (import.meta as any).env || {};
+const resolvedDbId = metaEnv.VITE_FIREBASE_DATABASE_ID || (metaEnv.VITE_FIREBASE_PROJECT_ID ? '(default)' : firebaseConfig.firestoreDatabaseId);
+
 const resolvedFirebaseConfig = {
   apiKey: metaEnv.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
   authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
@@ -36,7 +38,7 @@ const resolvedFirebaseConfig = {
   storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket,
   messagingSenderId: metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId,
   appId: metaEnv.VITE_FIREBASE_APP_ID || firebaseConfig.appId,
-  firestoreDatabaseId: metaEnv.VITE_FIREBASE_DATABASE_ID || firebaseConfig.firestoreDatabaseId,
+  firestoreDatabaseId: resolvedDbId,
 };
 
 // Suppress benign internal network retry warnings
@@ -52,13 +54,12 @@ const app = initializeApp(resolvedFirebaseConfig);
 export const auth = getAuth(app);
 
 // Force long-polling to prevent WebSocket/streaming dropouts in iframe & container environments
+const dbParam = (!resolvedDbId || resolvedDbId === '(default)') ? undefined : resolvedDbId;
 let firestoreDb;
 try {
-  firestoreDb = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
-  }, resolvedFirebaseConfig.firestoreDatabaseId);
+  firestoreDb = dbParam ? initializeFirestore(app, { experimentalForceLongPolling: true }, dbParam) : initializeFirestore(app, { experimentalForceLongPolling: true });
 } catch {
-  firestoreDb = getFirestore(app, resolvedFirebaseConfig.firestoreDatabaseId);
+  firestoreDb = dbParam ? getFirestore(app, dbParam) : getFirestore(app);
 }
 export const db = firestoreDb;
 

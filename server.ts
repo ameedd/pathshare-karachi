@@ -3,7 +3,6 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { createServer as createViteServer } from 'vite';
 import { saveOtpToFirestore, verifyOtpFromFirestore } from './server/firestoreOtp.js';
 import {
   logStructured,
@@ -14,7 +13,7 @@ import {
 } from './server/telemetry.js';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Enable reverse proxy trust for Cloud Run and Nginx
 app.set('trust proxy', 1);
@@ -811,6 +810,7 @@ app.post('/api/notifications/send-booking-confirmation', requireAdminAuth, notif
 // Vite middleware for development / production static handler
 async function start() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -845,4 +845,8 @@ async function start() {
   });
 }
 
-start();
+if (!process.env.VERCEL) {
+  start();
+}
+
+export default app;
