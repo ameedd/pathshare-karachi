@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import path from 'path';
 import express from 'express';
-import { app } from './api/index';
+import app from './api/index';
 
 const PORT = Number(process.env.PORT) || 3000;
 
