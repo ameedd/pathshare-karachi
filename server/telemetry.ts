@@ -32,7 +32,7 @@ const stats: TelemetryStats = {
 /**
  * Emits GCP Cloud Logging formatted structured JSON
  */
-export function logStructured(severity: 'INFO' | 'WARNING' | 'ERROR', event: string, metadata?: Record<string, any>) {
+export function logStructured(severity: 'INFO' \| 'WARNING' \| 'WARN' \| 'ERROR' \| 'CRITICAL', event: string, metadata?: Record<string, any>) {
   const payload = {
     timestamp: new Date().toISOString(),
     severity,

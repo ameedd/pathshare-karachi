@@ -3,14 +3,14 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { saveOtpToFirestore, verifyOtpFromFirestore } from './server/firestoreOtp.ts';
+import { saveOtpToFirestore, verifyOtpFromFirestore } from './server/firestoreOtp';
 import {
   logStructured,
   recordDispatch,
   handleWebhookPayload,
   getWebhookTelemetry,
   runConcurrencyStressTest,
-} from './server/telemetry.ts';
+} from './server/telemetry';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
@@ -613,7 +613,7 @@ function requireAdminAuth(req: express.Request, res: express.Response, next: exp
     : (xAdminKey ? String(xAdminKey).trim() : '');
 
   if (!configuredAdminKey || !token || token !== configuredAdminKey) {
-    logStructured('WARN', 'UnauthorizedAdminAccessAttempt', { path: req.path, ip: req.ip });
+    logStructured('WARNING', 'UnauthorizedAdminAccessAttempt', { path: req.path, ip: req.ip });
     return res.status(401).json({ success: false, error: 'Unauthorized: Valid admin authentication credentials required.' });
   }
 
@@ -629,7 +629,7 @@ app.post('/api/safety/sos-trigger', async (req, res) => {
   try {
     const { rideId, passengerName, driverName, emergencyContact, route, coordinates } = req.body || {};
     
-    logStructured('CRITICAL', 'EmergencySosTriggered', {
+    logStructured('ERROR', 'EmergencySosTriggered', {
       rideId,
       passengerName,
       driverName,
