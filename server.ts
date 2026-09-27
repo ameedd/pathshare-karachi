@@ -23,22 +23,7 @@ async function start() {
   }
 
   const server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(\n======================================================);
-    console.log(🚗 PathShare Server running on: http://localhost: + PORT);
-    console.log(⚠️  Note: Use plain http:// (NOT https://) in your browser);
-    console.log(======================================================\n);
-  });
-
-  server.on('clientError', (err, socket) => {
-    if (err.code === 'HPE_INVALID_METHOD' || err.message?.includes('Parse Error')) {
-      if (socket.writable) {
-        socket.end('HTTP/1.1 400 Bad Request\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nPathShare server is running on plain HTTP. Please open: http://localhost:3000\r\n');
-      }
-      return;
-    }
-    if (socket.writable) {
-      socket.end('HTTP/1.1 400 Bad Request\r\n\r\n');
-    }
+    console.log('PathShare Server running on http://localhost:' + PORT);
   });
 }
 
