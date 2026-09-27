@@ -3,14 +3,14 @@ import express from 'express';
 import path from 'path';
 import crypto from 'crypto';
 import rateLimit from 'express-rate-limit';
-import { saveOtpToFirestore, verifyOtpFromFirestore } from './server/firestoreOtp.js';
+import { saveOtpToFirestore, verifyOtpFromFirestore } from './server/firestoreOtp.ts';
 import {
   logStructured,
   recordDispatch,
   handleWebhookPayload,
   getWebhookTelemetry,
   runConcurrencyStressTest,
-} from './server/telemetry.js';
+} from './server/telemetry.ts';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3000;
